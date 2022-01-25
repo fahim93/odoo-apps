@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_purchase_order_procurement_team,purchase.order.procurement.team,purchase.model_purchase_order,cg_it_procurement.group_procurement_team,1,1,1,0
+access_purchase_order_coo,purchase.order.coo,purchase.model_purchase_order,cg_it_procurement.group_coo,1,0,0,0
+access_purchase_order_md,purchase.order.md,purchase.model_purchase_order,cg_it_procurement.group_md,1,0,0,0
+access_purchase_order_line_procurement_team,purchase.order.line.procurement.team,purchase.model_purchase_order_line,cg_it_procurement.group_procurement_team,1,1,1,1
+access_purchase_order_line_coo,purchase.order.line.coo,purchase.model_purchase_order_line,cg_it_procurement.group_coo,1,0,0,0
+access_purchase_order_line_md,purchase.order.line.md,purchase.model_purchase_order_line,cg_it_procurement.group_md,1,0,0,0

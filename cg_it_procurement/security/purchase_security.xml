@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="group_procurement_team" model="res.groups">
+            <field name="name">Procurement Team</field>
+            <field name="category_id" ref="base.module_category_inventory_purchase"/>
+        </record>
+        <record id="group_coo" model="res.groups">
+            <field name="name">COO</field>
+            <field name="category_id" ref="base.module_category_inventory_purchase"/>
+        </record>
+        <record id="group_md" model="res.groups">
+            <field name="name">MD</field>
+            <field name="category_id" ref="base.module_category_inventory_purchase"/>
+        </record>
+
+        <record id="purchase.menu_purchase_root" model="ir.ui.menu">
+            <field name="groups_id" eval="[(4,ref('group_procurement_team')), (4,ref('group_coo')), (4,ref('group_md'))]"/>
+        </record>
+    </data>
+</odoo>

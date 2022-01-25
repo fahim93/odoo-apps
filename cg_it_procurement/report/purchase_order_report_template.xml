@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_purchase_order">
+        <!--        <t t-if="o and 'company_id' in o">-->
+        <!--            <t t-set="company" t-value="o.company_id"></t>-->
+        <!--        </t>-->
+        <!--        <t t-if="not o or not 'company_id' in o">-->
+        <!--            <t t-set="company" t-value="res_company"></t>-->
+        <!--        </t>-->
+        <!--        <t t-call="cg_it_procurement.report_layout_header"/>-->
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+        <div class="header">
+            <div class="row">
+                <div class="col-12">
+                    <img t-if="company.logo" t-att-src="'data:image/png;base64,%s' % to_text(company.logo)"
+                         style="float: right;"/>
+                </div>
+            </div>
+        </div>
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <style>
+                        .mytable {
+                        border-collapse: collapse;
+                        width: 100%;
+                        background-color: white;
+                        }
+                        .outline-bordered {
+                        border: 1px solid black;
+                        }
+                        .full-bordered th, .full-bordered td {
+                        border: 1px solid black;
+                        }
+                        .pad-3 th,
+                        .pad-3 td{
+                        padding: 0.3rem;
+                        }
+                    </style>
+                    <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+                    <div class="page" style="font-size: 11pt;font-family:Helvetica,Verdana,Arial,sans,Lucida Grande,Calibri;">
+                        <div class="row my-2">
+                            <div class="col-6">
+                                <h2 t-if="o.state == 'draft'">Request for Quotation</h2>
+                                <h2 t-if="o.state in ['sent', 'to approve']">Purchase Order</h2>
+                                <h2 t-if="o.state in ['purchase', 'done']">Purchase Order</h2>
+                                <h2 t-if="o.state == 'cancel'">Cancelled Purchase Order</h2>
+                            </div>
+                            <div class="col-1"/>
+                            <div class="col-5">
+                                <span>Date: <t t-if="o.date_approve" t-esc="o.date_approve"/></span>
+                                <br/>
+                                <span>PO No: <t t-if="o.name" t-esc="o.name"/></span>
+                                <br/>
+                                <span>QTN Ref: <t t-if="o.partner_ref" t-esc="o.partner_ref"/></span>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-6">
+                                <table class="mytable outline-bordered">
+                                    <thead class="bg-secondary">
+                                        <tr>
+                                            <th colspan="2" class="text-center">
+                                                <h5>PO Issued To:</h5>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Vendor Name</td>
+                                            <td>
+                                                <span t-esc="o.partner_id.name"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Address</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Phone</td>
+                                            <td>
+                                                <span t-esc="o.partner_id.phone"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Mobile</td>
+                                            <td>
+                                                <span t-esc="o.partner_id.mobile"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Email</td>
+                                            <td>
+                                                <span t-esc="o.partner_id.email"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <strong>Attention:</strong>
+                            </div>
+                            <div class="col-1"/>
+                            <div class="col-5">
+                                <table class="mytable outline-bordered">
+                                    <thead class="bg-secondary">
+                                        <tr>
+                                            <th class="text-center">
+                                                <h5>Bill To:</h5>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div t-field="company.partner_id"
+                                                     t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-12">
+                                <h5>
+                                    <u t-esc="'Subject: %s'%(o.subject)"/>
+                                </h5>
+                                <span t-esc="'Regarding your quotation and price negotiation, out management is pleased to place
+                                    the purchase order for %s per terms and
+                                    condition mention below.'%(o.subject)"/>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-12">
+                                <table class="mytable full-bordered pad-3">
+                                    <thead class="bg-secondary">
+                                        <tr>
+                                            <th>Component</th>
+                                            <th>UOM</th>
+                                            <th>Quantity</th>
+                                            <th>Unit Price</th>
+                                            <th class="text-right">T.Price(Tk)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="current_subtotal" t-value="0"/>
+                                        <t t-foreach="o.order_line" t-as="line">
+                                            <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                                               groups="account.group_show_line_subtotals_tax_excluded"/>
+                                            <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                                               groups="account.group_show_line_subtotals_tax_included"/>
+
+                                            <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                                                <t t-if="not line.display_type">
+                                                    <td>
+                                                        <span t-field="line.name"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.product_uom.name" groups="uom.group_uom"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.product_qty"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-field="line.price_unit"/>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <span t-field="line.price_subtotal"
+                                                              t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                    </td>
+                                                </t>
+                                                <t t-if="line.display_type == 'line_section'">
+                                                    <td colspan="99" id="section">
+                                                        <span t-field="line.name"/>
+                                                    </td>
+                                                    <t t-set="current_section" t-value="line"/>
+                                                    <t t-set="current_subtotal" t-value="0"/>
+                                                </t>
+                                                <t t-if="line.display_type == 'line_note'">
+                                                    <td colspan="99" id="note">
+                                                        <span t-field="line.name"/>
+                                                    </td>
+                                                </t>
+                                            </tr>
+                                        </t>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <strong>Sub-Total</strong>
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-field="o.amount_untaxed"
+                                                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <strong>[Annex-A] Grand Total for Service Excluding VAT but Including
+                                                    AIT
+                                                </strong>
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-field="o.amount_untaxed"
+                                                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <strong>VAT</strong>
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-field="o.amount_tax"
+                                                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <strong>Grand Total Including VAT and AIT</strong>
+                                            </td>
+                                            <td class="text-right">
+                                                <strong>
+                                                    <span t-field="o.amount_total"
+                                                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-12">
+                                <strong>Total Price:
+                                    <span t-field="o.amount_total"
+                                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                </strong>
+                                <br/>
+                                <strong>In Word:
+                                    <span t-esc="o.amount_in_word()"/>
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-12">
+                                <table class="mytable">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <strong>Standard Terms and Conditions:</strong>
+                                            </td>
+                                            <td>
+                                                <span>VAT and TAX: Compiled as per Govt Rules.</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">Payment Terms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Bill/Challan:</td>
+                                            <td>
+                                                <strong>Two [2] sets of bill and challan must be submitted with the
+                                                    products in your company pad.
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Delivery Location:</td>
+                                            <td>
+                                                <div t-field="company.partner_id"
+                                                     t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": False}'/>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-12">
+                                <span>If the mentioned terms and conditions are acceptable to you, you are requested to
+                                    sign the duplicate copy as a token of your acceptance.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+        <div class="footer">
+            <t t-set="coo"
+               t-value="request.env['res.users'].search([('company_id', '=', company.id), ('groups_id', '=', request.env.ref('cg_it_procurement.group_coo').id)], limit=1)"/>
+            <t t-set="md"
+               t-value="request.env['res.users'].search([('company_id', '=', company.id), ('groups_id', '=', request.env.ref('cg_it_procurement.group_md').id)], limit=1)"/>
+            <div class="row my-2">
+                <div class="col-6">
+                    <!--                    <div class="row">-->
+                    <!--                        <div class="col-12">-->
+                    <!--                            <img t-if="coo.digital_signature"-->
+                    <!--                                 t-att-src="'data:image/png;base64,%s' % to_text(coo.digital_signature)"-->
+                    <!--                            />-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
+                    <div class="row">
+                        <div class="col-6">
+                            <div style="width: 100%;">
+                                <img t-if="coo.digital_signature"
+                                     t-att-src="'data:image/png;base64,%s' % to_text(coo.digital_signature)"
+                                     class="img-fluid"
+                                />
+                            </div>
+                            <div style="width: 100%; border-top: 1px dotted black">
+                                <span t-esc="coo.name"/>
+                                <br/>
+                                <strong>COO</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <span>cc: CFO Digicon Telecommunication Limited</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+<!--                    <div class="row">-->
+<!--                        <div class="col-12">-->
+<!--                            <img t-if="md.digital_signature"-->
+<!--                                 t-att-src="'data:image/png;base64,%s' % to_text(md.digital_signature)"-->
+<!--                            />-->
+<!--                        </div>-->
+<!--                    </div>-->
+                    <div class="row">
+                        <div class="col-6">
+                            <div style="width: 100%;">
+                                <img t-if="md.digital_signature"
+                                     t-att-src="'data:image/png;base64,%s' % to_text(md.digital_signature)"
+                                     class="img-fluid"
+                                />
+                            </div>
+                            <div style="width: 100%; border-top: 1px dotted black">
+                                <span t-esc="md.name"/>
+                                <br/>
+                                <strong>Managing Director</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <span>cc: CFO Digicon Telecommunication Limited</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <strong>
+                        <span t-field="company.name"/>
+                    </strong>
+                    <br/>
+                    <span t-esc="'%s, %s- %s, %s '%(company.street, company.city, company.zip, company.country_id.name)"/>
+                    <br/>
+                    <span t-esc="'Tel: %s, Cell: %s, E-mail: %s'%(company.phone, company.partner_id.mobile, company.email)"/>
+                </div>
+            </div>
+        </div>
+        <!--        <t t-call="cg_it_procurement.report_layout_footer"/>-->
+
+    </template>
+</odoo>
